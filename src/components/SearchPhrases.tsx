@@ -1,40 +1,27 @@
-import { FormEvent, useState } from "react";
-import { useAction } from "convex/react";
-import { api } from "../../convex/_generated/api";
-import { Id } from "../../convex/_generated/dataModel";
+import { FormEvent } from "react";
 import { InfoBox } from "./InfoBox";
 import { Search } from "lucide-react";
-
-type SearchResult = {
-  _id: Id<"phrases">;
-  text: string;
-  score: number;
-};
+import { SearchResult } from "../App";
 
 interface SearchPhrasesProps {
   onError: (error: unknown) => void;
+  searchText: string;
+  setSearchText: (text: string) => void;
+  isSearching: boolean;
+  searchResults: SearchResult[];
+  onSearch: (text: string) => Promise<void>;
 }
 
-export function SearchPhrases({ onError }: SearchPhrasesProps) {
-  const [searchText, setSearchText] = useState("");
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-  const searchPhrases = useAction(api.phrases.search);
-
+export function SearchPhrases({
+  searchText,
+  setSearchText,
+  isSearching,
+  searchResults,
+  onSearch,
+}: SearchPhrasesProps) {
   const handleSearch = async (e: FormEvent) => {
     e.preventDefault();
-    if (!searchText.trim()) return;
-
-    try {
-      setIsSearching(true);
-      const results = await searchPhrases({ text: searchText.trim() });
-      setSearchResults(results);
-    } catch (err) {
-      onError(err);
-      setSearchResults([]);
-    } finally {
-      setIsSearching(false);
-    }
+    await onSearch(searchText);
   };
 
   return (
@@ -44,7 +31,7 @@ export function SearchPhrases({ onError }: SearchPhrasesProps) {
         similarity to find phrases that are semantically related, even if they
         use different words.
       </InfoBox>
-      <form onSubmit={handleSearch} className="relative flex items-center mb-6">
+      <form onSubmit={handleSearch} className="relative flex items-center">
         <input
           type="text"
           value={searchText}
@@ -68,7 +55,7 @@ export function SearchPhrases({ onError }: SearchPhrasesProps) {
 
       {searchResults.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-sm font-medium text-gray-600">
+          <h3 className="text-sm mt-4 font-medium text-gray-600">
             Similar flavors found:
           </h3>
           <div className="space-y-2">

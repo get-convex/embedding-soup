@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 interface PhraseListProps {
   onError: (error: unknown) => void;
+  onSearch: (text: string) => Promise<void>;
 }
 
 interface FloatingPhrase {
@@ -17,10 +18,17 @@ interface FloatingPhrase {
   isNew?: boolean;
 }
 
-export function PhraseList({ onError }: PhraseListProps) {
+export function PhraseList({ onError, onSearch }: PhraseListProps) {
   const phrases = useQuery(api.phrases.list);
   const [floatingPhrases, setFloatingPhrases] = useState<FloatingPhrase[]>([]);
   const [newPhraseIds, setNewPhraseIds] = useState<Set<string>>(new Set());
+
+  // Trigger search when phrases change
+  useEffect(() => {
+    if (!phrases?.length) return;
+    const lastPhrase = phrases[phrases.length - 1];
+    onSearch(lastPhrase.text);
+  }, [phrases?.length]);
 
   const removePhrase = useMutation(api.phrases.remove).withOptimisticUpdate(
     (localStore, args) => {

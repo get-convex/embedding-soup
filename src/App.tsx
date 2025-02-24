@@ -5,12 +5,39 @@ import { AddPhrase } from "./components/AddPhrase";
 import { PhraseList } from "./components/PhraseList";
 import { SearchPhrases } from "./components/SearchPhrases";
 import { ErrorDisplay } from "./components/ErrorDisplay";
+import { useAction } from "convex/react";
+import { api } from "../convex/_generated/api";
+import { Id } from "../convex/_generated/dataModel";
+
+export type SearchResult = {
+  _id: Id<"phrases">;
+  text: string;
+  score: number;
+};
 
 export default function App() {
   const [error, setError] = useState<string | null>(null);
+  const [searchText, setSearchText] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const searchPhrases = useAction(api.phrases.search);
 
-  const handleError = (err: unknown) => {
+  const handleError = (err: unknown) =>
     setError(err instanceof Error ? err.message : "An error occurred");
+
+  const handleSearch = async (text: string) => {
+    if (!text.trim()) return;
+
+    try {
+      setIsSearching(true);
+      const results = await searchPhrases({ text: text.trim() });
+      setSearchResults(results);
+    } catch (err) {
+      handleError(err);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   return (
@@ -37,14 +64,21 @@ export default function App() {
                 className="w-full h-full object-contain"
               />
               <div className="absolute inset-[15%] rounded-full overflow-hidden">
-                <PhraseList onError={handleError} />
+                <PhraseList onError={handleError} onSearch={handleSearch} />
               </div>
             </div>
           </div>
 
           {/* Right side - Search */}
           <div className="w-96 relative z-10">
-            <SearchPhrases onError={handleError} />
+            <SearchPhrases
+              onError={handleError}
+              searchText={searchText}
+              setSearchText={setSearchText}
+              isSearching={isSearching}
+              searchResults={searchResults}
+              onSearch={handleSearch}
+            />
           </div>
         </div>
       </div>
