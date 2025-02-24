@@ -41,8 +41,8 @@ export function PhraseList({ onError }: PhraseListProps) {
       phrases.map((phrase) => ({
         id: phrase._id,
         text: phrase.text,
-        x: Math.random() * 80 + 10, // 10-90%
-        y: Math.random() * 80 + 10, // 10-90%
+        x: Math.random() * 40 + 30, // 30-70%
+        y: Math.random() * 40 + 30, // 30-70%
         animationDuration: Math.random() * 10 + 20, // 20-30s
         animationDelay: -Math.random() * 30, // Random start point in the animation
       })),
@@ -78,13 +78,13 @@ export function PhraseList({ onError }: PhraseListProps) {
               transform: translate(-50%, -50%) translate(0, 0);
             }
             25% {
-              transform: translate(-50%, -50%) translate(30px, 15px);
+              transform: translate(-50%, -50%) translate(15px, 10px);
             }
             50% {
-              transform: translate(-50%, -50%) translate(0, 30px);
+              transform: translate(-50%, -50%) translate(0, 20px);
             }
             75% {
-              transform: translate(-50%, -50%) translate(-30px, 15px);
+              transform: translate(-50%, -50%) translate(-15px, 10px);
             }
             100% {
               transform: translate(-50%, -50%) translate(0, 0);

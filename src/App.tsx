@@ -14,7 +14,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#e8f0f0]">
+    <div className="min-h-screen bg-[#E2EEEA]">
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-5xl font-bold mb-12 text-center bg-clip-text text-transparent bg-gradient-to-r from-rose-700 to-rose-900">
           Embedding Soup
@@ -22,17 +22,17 @@ export default function App() {
 
         <ErrorDisplay error={error} />
 
-        <div className="flex gap-8 justify-center items-start">
+        <div className="flex gap-8 justify-center items-start relative">
           {/* Left side - Add phrases */}
-          <div className="w-96">
+          <div className="w-96 relative z-10">
             <AddPhrase onError={handleError} />
           </div>
 
           {/* Center - Soup Bowl */}
           <div className="relative w-[500px] h-[500px] flex items-center justify-center">
-            <div className="w-full h-full relative">
+            <div className="absolute w-[1000px] h-[1000px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
               <img
-                src="/soup.jpeg"
+                src="/soup.png"
                 alt="Soup Bowl"
                 className="w-full h-full object-contain"
               />
@@ -43,7 +43,7 @@ export default function App() {
           </div>
 
           {/* Right side - Search */}
-          <div className="w-96">
+          <div className="w-96 relative z-10">
             <SearchPhrases onError={handleError} />
           </div>
         </div>
