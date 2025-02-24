@@ -14,11 +14,13 @@ interface FloatingPhrase {
   y: number;
   animationDuration: number;
   animationDelay: number;
+  isNew?: boolean;
 }
 
 export function PhraseList({ onError }: PhraseListProps) {
   const phrases = useQuery(api.phrases.list);
   const [floatingPhrases, setFloatingPhrases] = useState<FloatingPhrase[]>([]);
+  const [newPhraseIds, setNewPhraseIds] = useState<Set<string>>(new Set());
 
   const removePhrase = useMutation(api.phrases.remove).withOptimisticUpdate(
     (localStore, args) => {
@@ -39,10 +41,34 @@ export function PhraseList({ onError }: PhraseListProps) {
     // Keep existing positions and only generate for new phrases
     setFloatingPhrases((prev) => {
       const existingPhrases = new Map(prev.map((p) => [p.id.toString(), p]));
+      const currentIds = new Set(phrases.map((p) => p._id.toString()));
+
+      // Clear out old phrases from newPhraseIds
+      setNewPhraseIds((prev) => {
+        const next = new Set(prev);
+        for (const id of prev) {
+          if (!currentIds.has(id)) next.delete(id);
+        }
+        return next;
+      });
 
       return phrases.map((phrase) => {
         const existing = existingPhrases.get(phrase._id.toString());
         if (existing) return existing;
+
+        // Mark as new if we haven't seen it before
+        const isNew = !existingPhrases.has(phrase._id.toString());
+        if (isNew) {
+          setNewPhraseIds((prev) => new Set(prev).add(phrase._id.toString()));
+          // Remove the new status after animation
+          setTimeout(() => {
+            setNewPhraseIds((prev) => {
+              const next = new Set(prev);
+              next.delete(phrase._id.toString());
+              return next;
+            });
+          }, 1000);
+        }
 
         // Only generate new positions for new phrases
         return {
@@ -52,6 +78,7 @@ export function PhraseList({ onError }: PhraseListProps) {
           y: Math.random() * 40 + 30, // 30-70%
           animationDuration: Math.random() * 10 + 20, // 20-30s
           animationDelay: -Math.random() * 30, // Random start point in the animation
+          isNew,
         };
       });
     });
@@ -82,20 +109,26 @@ export function PhraseList({ onError }: PhraseListProps) {
       <style>
         {`
           @keyframes float {
-            0% {
-              transform: translate(-50%, -50%) translate(0, 0);
-            }
-            25% {
-              transform: translate(-50%, -50%) translate(15px, 10px);
+            0% { transform: translate(-50%, -50%) translate(0, 0); }
+            25% { transform: translate(-50%, -50%) translate(15px, 10px); }
+            50% { transform: translate(-50%, -50%) translate(0, 20px); }
+            75% { transform: translate(-50%, -50%) translate(-15px, 10px); }
+            100% { transform: translate(-50%, -50%) translate(0, 0); }
+          }
+          @keyframes dropIn {
+            0% { 
+              opacity: 0;
+              transform: translate(-50%, -200%) scale(0.3);
             }
             50% {
-              transform: translate(-50%, -50%) translate(0, 20px);
+              transform: translate(-50%, -30%) scale(1.2);
             }
-            75% {
-              transform: translate(-50%, -50%) translate(-15px, 10px);
+            70% {
+              transform: translate(-50%, -60%) scale(0.9);
             }
             100% {
-              transform: translate(-50%, -50%) translate(0, 0);
+              opacity: 1;
+              transform: translate(-50%, -50%) scale(1);
             }
           }
         `}
@@ -109,8 +142,12 @@ export function PhraseList({ onError }: PhraseListProps) {
           style={{
             left: `${phrase.x}%`,
             top: `${phrase.y}%`,
-            animation: `float ${phrase.animationDuration}s infinite ease-in-out`,
-            animationDelay: `${phrase.animationDelay}s`,
+            animation: newPhraseIds.has(phrase.id.toString())
+              ? "dropIn 0.6s ease-out forwards"
+              : `float ${phrase.animationDuration}s infinite ease-in-out`,
+            animationDelay: newPhraseIds.has(phrase.id.toString())
+              ? "0s"
+              : `${phrase.animationDelay}s`,
           }}
         >
           <div className="flex items-center gap-2">
@@ -119,8 +156,10 @@ export function PhraseList({ onError }: PhraseListProps) {
             </span>
             <button
               onClick={() => handleRemove(phrase.id)}
+              disabled={newPhraseIds.has(phrase.id.toString())}
               className="text-rose-500 hover:text-rose-700 hover:scale-110
-                         transform active:scale-95 transition-all"
+                         transform active:scale-95 transition-all
+                         disabled:opacity-30 disabled:hover:scale-100 disabled:cursor-not-allowed"
             >
               ×
             </button>
