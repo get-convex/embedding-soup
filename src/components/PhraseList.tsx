@@ -36,17 +36,25 @@ export function PhraseList({ onError }: PhraseListProps) {
   useEffect(() => {
     if (!phrases) return;
 
-    // Initialize positions with animation parameters
-    setFloatingPhrases(
-      phrases.map((phrase) => ({
-        id: phrase._id,
-        text: phrase.text,
-        x: Math.random() * 40 + 30, // 30-70%
-        y: Math.random() * 40 + 30, // 30-70%
-        animationDuration: Math.random() * 10 + 20, // 20-30s
-        animationDelay: -Math.random() * 30, // Random start point in the animation
-      })),
-    );
+    // Keep existing positions and only generate for new phrases
+    setFloatingPhrases((prev) => {
+      const existingPhrases = new Map(prev.map((p) => [p.id.toString(), p]));
+
+      return phrases.map((phrase) => {
+        const existing = existingPhrases.get(phrase._id.toString());
+        if (existing) return existing;
+
+        // Only generate new positions for new phrases
+        return {
+          id: phrase._id,
+          text: phrase.text,
+          x: Math.random() * 40 + 30, // 30-70%
+          y: Math.random() * 40 + 30, // 30-70%
+          animationDuration: Math.random() * 10 + 20, // 20-30s
+          animationDelay: -Math.random() * 30, // Random start point in the animation
+        };
+      });
+    });
   }, [phrases?.length]);
 
   const handleRemove = async (id: Id<"phrases">) => {

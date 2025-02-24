@@ -2,6 +2,8 @@ import { FormEvent, useState } from "react";
 import { useAction } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
+import { InfoBox } from "./InfoBox";
+import { Search } from "lucide-react";
 
 type SearchResult = {
   _id: Id<"phrases">;
@@ -37,6 +39,11 @@ export function SearchPhrases({ onError }: SearchPhrasesProps) {
 
   return (
     <div className="w-full">
+      <InfoBox icon={<Search className="w-5 h-5" />}>
+        Search for ingredients with similar meanings. The search uses vector
+        similarity to find phrases that are semantically related, even if they
+        use different words.
+      </InfoBox>
       <form onSubmit={handleSearch} className="relative flex items-center mb-6">
         <input
           type="text"

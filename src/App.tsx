@@ -30,7 +30,7 @@ export default function App() {
 
           {/* Center - Soup Bowl */}
           <div className="relative w-[500px] h-[500px] flex items-center justify-center">
-            <div className="absolute w-[1000px] h-[1000px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+            <div className="absolute w-[1200px] h-[1200px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
               <img
                 src="/soup.png"
                 alt="Soup Bowl"
