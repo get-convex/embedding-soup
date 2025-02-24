@@ -15,19 +15,6 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export const generateEmbedding = internalAction({
-  args: { text: v.string() },
-  returns: v.array(v.number()),
-  handler: async (ctx, { text }) => {
-    const response = await openai.embeddings.create({
-      model: "text-embedding-3-small",
-      input: text,
-      encoding_format: "float",
-    });
-    return response.data[0].embedding;
-  },
-});
-
 export const add = mutation({
   args: { text: v.string() },
   returns: v.null(),
@@ -54,12 +41,14 @@ export const updateEmbedding = internalAction({
   },
   returns: v.null(),
   handler: async (ctx, { phraseId, text }) => {
-    const embedding = await ctx.runAction(internal.phrases.generateEmbedding, {
-      text,
+    const response = await openai.embeddings.create({
+      model: "text-embedding-3-small",
+      input: text,
+      encoding_format: "float",
     });
     await ctx.runMutation(internal.phrases.saveEmbedding, {
       phraseId,
-      embedding,
+      embedding: response.data[0].embedding,
     });
     return null;
   },
