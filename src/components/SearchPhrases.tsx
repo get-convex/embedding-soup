@@ -43,16 +43,16 @@ export function SearchPhrases({ onError }: SearchPhrasesProps) {
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
           placeholder="Search for flavors in the soup..."
-          className="w-full px-6 py-3 bg-white/5 rounded-full text-white placeholder-gray-400
-                     border border-white/10 focus:border-purple-400 focus:outline-none
-                     backdrop-blur-sm transition-colors"
+          className="w-full px-6 py-3 bg-white/80 rounded-full text-gray-800 placeholder-gray-500
+                     border border-gray-200 focus:border-rose-600 focus:outline-none
+                     shadow-sm backdrop-blur-sm transition-colors"
           disabled={isSearching}
         />
         <button
           type="submit"
-          className="absolute right-2 px-4 py-1.5 bg-gradient-to-r from-green-500 to-emerald-500
-                     text-white rounded-full disabled:opacity-50 hover:from-green-600 hover:to-emerald-600
-                     transition-all transform hover:scale-105 active:scale-95"
+          className="absolute right-2 px-4 py-1.5 bg-gradient-to-r from-rose-600 to-rose-700
+                     text-white rounded-full disabled:opacity-50 hover:from-rose-700 hover:to-rose-800
+                     transition-all transform hover:scale-105 active:scale-95 shadow-sm"
           disabled={isSearching}
         >
           {isSearching ? "Tasting..." : "Taste"}
@@ -61,26 +61,26 @@ export function SearchPhrases({ onError }: SearchPhrasesProps) {
 
       {searchResults.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-sm font-medium text-gray-400">
+          <h3 className="text-sm font-medium text-gray-600">
             Similar flavors found:
           </h3>
           <div className="space-y-2">
             {searchResults.map((result) => (
               <div
                 key={result._id}
-                className="p-4 bg-white/5 backdrop-blur-sm rounded-lg border border-white/10
-                           hover:border-purple-400/50 transition-colors"
+                className="p-4 bg-white/90 backdrop-blur-sm rounded-lg border border-gray-200
+                           hover:border-rose-400/50 transition-colors shadow-sm"
               >
                 <div className="flex justify-between items-center gap-4">
-                  <span className="text-white">{result.text}</span>
+                  <span className="text-gray-800">{result.text}</span>
                   <div className="flex items-center gap-2">
-                    <div className="w-20 h-2 bg-white/10 rounded-full overflow-hidden">
+                    <div className="w-20 h-2 bg-gray-100 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"
+                        className="h-full bg-gradient-to-r from-rose-600 to-rose-700 rounded-full"
                         style={{ width: `${result.score * 100}%` }}
                       />
                     </div>
-                    <span className="text-sm text-gray-400 whitespace-nowrap">
+                    <span className="text-sm text-gray-500 whitespace-nowrap">
                       {(result.score * 100).toFixed(0)}%
                     </span>
                   </div>

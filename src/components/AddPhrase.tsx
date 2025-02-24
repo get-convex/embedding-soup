@@ -43,16 +43,16 @@ export function AddPhrase({ onError }: AddPhraseProps) {
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Add an ingredient to the soup..."
-          className="w-full px-6 py-3 bg-white/5 rounded-full text-white placeholder-gray-400
-                     border border-white/10 focus:border-purple-400 focus:outline-none
-                     backdrop-blur-sm transition-colors"
+          className="w-full px-6 py-3 bg-white/80 rounded-full text-gray-800 placeholder-gray-500
+                     border border-gray-200 focus:border-rose-600 focus:outline-none
+                     shadow-sm backdrop-blur-sm transition-colors"
         />
         <button
           type="submit"
           disabled={!text.trim()}
-          className="absolute right-2 px-4 py-1.5 bg-gradient-to-r from-purple-500 to-pink-500
-                     text-white rounded-full disabled:opacity-50 hover:from-purple-600 hover:to-pink-600
-                     transition-all transform hover:scale-105 active:scale-95"
+          className="absolute right-2 px-4 py-1.5 bg-gradient-to-r from-rose-600 to-rose-700
+                     text-white rounded-full disabled:opacity-50 hover:from-rose-700 hover:to-rose-800
+                     transition-all transform hover:scale-105 active:scale-95 shadow-sm"
         >
           Drop In
         </button>

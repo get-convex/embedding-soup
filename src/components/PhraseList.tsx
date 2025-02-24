@@ -59,14 +59,14 @@ export function PhraseList({ onError }: PhraseListProps) {
 
   if (phrases === undefined)
     return (
-      <div className="text-center text-gray-400 mt-4">
+      <div className="text-center text-gray-600 mt-4">
         Heating up the soup...
       </div>
     );
 
   if (phrases.length === 0)
     return (
-      <div className="text-center text-gray-400 mt-4">The soup is empty!</div>
+      <div className="text-center text-gray-600 mt-4">The soup is empty!</div>
     );
 
   return (
@@ -95,7 +95,9 @@ export function PhraseList({ onError }: PhraseListProps) {
       {floatingPhrases.map((phrase) => (
         <div
           key={phrase.id}
-          className="absolute bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full"
+          className="absolute transform -translate-x-1/2 -translate-y-1/2 group
+                     bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full shadow-sm
+                     transition-colors duration-200"
           style={{
             left: `${phrase.x}%`,
             top: `${phrase.y}%`,
@@ -104,10 +106,12 @@ export function PhraseList({ onError }: PhraseListProps) {
           }}
         >
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">{phrase.text}</span>
+            <span className="text-sm font-medium text-gray-800">
+              {phrase.text}
+            </span>
             <button
               onClick={() => handleRemove(phrase.id)}
-              className="text-white/50 hover:text-white/90 hover:scale-110
+              className="text-rose-500 hover:text-rose-700 hover:scale-110
                          transform active:scale-95 transition-all"
             >
               ×
