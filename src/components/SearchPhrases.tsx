@@ -36,40 +36,54 @@ export function SearchPhrases({ onError }: SearchPhrasesProps) {
   };
 
   return (
-    <div className="mb-8">
-      <h2 className="text-xl font-semibold mb-4">Search</h2>
-      <form onSubmit={handleSearch} className="flex gap-2 mb-4">
+    <div className="w-full">
+      <form onSubmit={handleSearch} className="relative flex items-center mb-6">
         <input
           type="text"
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
-          placeholder="Search for similar phrases"
-          className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white placeholder-gray-400"
+          placeholder="Search for flavors in the soup..."
+          className="w-full px-6 py-3 bg-white/5 rounded-full text-white placeholder-gray-400
+                     border border-white/10 focus:border-purple-400 focus:outline-none
+                     backdrop-blur-sm transition-colors"
           disabled={isSearching}
         />
         <button
           type="submit"
-          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+          className="absolute right-2 px-4 py-1.5 bg-gradient-to-r from-green-500 to-emerald-500
+                     text-white rounded-full disabled:opacity-50 hover:from-green-600 hover:to-emerald-600
+                     transition-all transform hover:scale-105 active:scale-95"
           disabled={isSearching}
         >
-          {isSearching ? "Searching..." : "Search"}
+          {isSearching ? "Tasting..." : "Taste"}
         </button>
       </form>
 
       {searchResults.length > 0 && (
-        <div>
-          <h3 className="font-medium mb-2">Results:</h3>
+        <div className="space-y-3">
+          <h3 className="text-sm font-medium text-gray-400">
+            Similar flavors found:
+          </h3>
           <div className="space-y-2">
             {searchResults.map((result) => (
               <div
                 key={result._id}
-                className="p-3 bg-gray-800 rounded text-white"
+                className="p-4 bg-white/5 backdrop-blur-sm rounded-lg border border-white/10
+                           hover:border-purple-400/50 transition-colors"
               >
-                <div className="flex justify-between items-center">
-                  <span>{result.text}</span>
-                  <span className="text-sm text-gray-400">
-                    Similarity: {(result.score * 100).toFixed(1)}%
-                  </span>
+                <div className="flex justify-between items-center gap-4">
+                  <span className="text-white">{result.text}</span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-20 h-2 bg-white/10 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"
+                        style={{ width: `${result.score * 100}%` }}
+                      />
+                    </div>
+                    <span className="text-sm text-gray-400 whitespace-nowrap">
+                      {(result.score * 100).toFixed(0)}%
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}

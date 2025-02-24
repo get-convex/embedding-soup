@@ -36,21 +36,25 @@ export function AddPhrase({ onError }: AddPhraseProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mb-8">
-      <div className="flex gap-2">
+    <form onSubmit={handleSubmit} className="w-full">
+      <div className="relative flex items-center">
         <input
           type="text"
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Enter a phrase..."
-          className="flex-1 p-2 bg-gray-800 rounded text-white"
+          placeholder="Add an ingredient to the soup..."
+          className="w-full px-6 py-3 bg-white/5 rounded-full text-white placeholder-gray-400
+                     border border-white/10 focus:border-purple-400 focus:outline-none
+                     backdrop-blur-sm transition-colors"
         />
         <button
           type="submit"
           disabled={!text.trim()}
-          className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
+          className="absolute right-2 px-4 py-1.5 bg-gradient-to-r from-purple-500 to-pink-500
+                     text-white rounded-full disabled:opacity-50 hover:from-purple-600 hover:to-pink-600
+                     transition-all transform hover:scale-105 active:scale-95"
         >
-          Add
+          Drop In
         </button>
       </div>
     </form>
