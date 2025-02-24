@@ -1,15 +1,8 @@
 import { v } from "convex/values";
-import {
-  action,
-  mutation,
-  query,
-  ActionCtx,
-  internalQuery,
-  internalMutation,
-} from "./_generated/server";
-import { internal } from "./_generated/api";
+import { action, mutation, query, internalQuery } from "./_generated/server";
+import { api, internal } from "./_generated/api";
 import OpenAI from "openai";
-import { Doc, Id } from "./_generated/dataModel";
+import { Id } from "./_generated/dataModel";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -27,7 +20,7 @@ export const add = action({
 
     const embedding = response.data[0].embedding;
 
-    await ctx.runMutation(internal.phrases.store, {
+    await ctx.runMutation(api.phrases.store, {
       text,
       embedding,
     });
@@ -36,7 +29,7 @@ export const add = action({
   },
 });
 
-export const store = internalMutation({
+export const store = mutation({
   args: {
     text: v.string(),
     embedding: v.array(v.number()),

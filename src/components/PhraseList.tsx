@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import { Id } from "../../convex/_generated/dataModel";
 
 interface PhraseListProps {
   onError: (error: unknown) => void;
@@ -9,7 +10,7 @@ export function PhraseList({ onError }: PhraseListProps) {
   const phrases = useQuery(api.phrases.list);
   const removePhrase = useMutation(api.phrases.remove);
 
-  const handleRemove = async (id: string) => {
+  const handleRemove = async (id: Id<"phrases">) => {
     try {
       await removePhrase({ id });
     } catch (err) {
