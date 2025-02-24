@@ -8,6 +8,9 @@ import { Id } from "../convex/_generated/dataModel";
 export default function App() {
   const [inputText, setInputText] = useState("");
   const [searchText, setSearchText] = useState("");
+  const [isAdding, setIsAdding] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const phrases = useQuery(api.phrases.list);
   const addPhrase = useAction(api.phrases.add);
@@ -25,21 +28,42 @@ export default function App() {
     e.preventDefault();
     if (!inputText.trim()) return;
 
-    await addPhrase({ text: inputText.trim() });
-    setInputText("");
+    try {
+      setIsAdding(true);
+      setError(null);
+      await addPhrase({ text: inputText.trim() });
+      setInputText("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to add phrase");
+    } finally {
+      setIsAdding(false);
+    }
   };
 
   const handleSearch = async (e: FormEvent) => {
     e.preventDefault();
     if (!searchText.trim()) return;
 
-    const results = await searchPhrases({ text: searchText.trim() });
-    setSearchResults(results);
+    try {
+      setIsSearching(true);
+      setError(null);
+      const results = await searchPhrases({ text: searchText.trim() });
+      setSearchResults(results);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to search phrases");
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
       <h1 className="text-3xl font-bold mb-8">Vector Search Demo</h1>
+
+      {error && (
+        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{error}</div>
+      )}
 
       <div className="mb-8">
         <h2 className="text-xl font-semibold mb-4">Add Phrases</h2>
@@ -50,34 +74,42 @@ export default function App() {
             onChange={(e) => setInputText(e.target.value)}
             placeholder="Enter a word or phrase"
             className="flex-1 px-3 py-2 border rounded"
+            disabled={isAdding}
           />
           <button
             type="submit"
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+            disabled={isAdding}
           >
-            Add
+            {isAdding ? "Adding..." : "Add"}
           </button>
         </form>
       </div>
 
       <div className="mb-8">
         <h2 className="text-xl font-semibold mb-4">Your Phrases</h2>
-        <div className="space-y-2">
-          {phrases?.map((phrase) => (
-            <div
-              key={phrase._id}
-              className="flex items-center justify-between p-3 bg-gray-50 rounded"
-            >
-              <span>{phrase.text}</span>
-              <button
-                onClick={() => removePhrase({ id: phrase._id })}
-                className="text-red-500 hover:text-red-600"
+        {phrases === undefined ? (
+          <div className="text-gray-500">Loading phrases...</div>
+        ) : phrases.length === 0 ? (
+          <div className="text-gray-500">No phrases added yet</div>
+        ) : (
+          <div className="space-y-2">
+            {phrases.map((phrase) => (
+              <div
+                key={phrase._id}
+                className="flex items-center justify-between p-3 bg-gray-50 rounded"
               >
-                Remove
-              </button>
-            </div>
-          ))}
-        </div>
+                <span>{phrase.text}</span>
+                <button
+                  onClick={() => removePhrase({ id: phrase._id })}
+                  className="text-red-500 hover:text-red-600"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="mb-8">
@@ -89,12 +121,14 @@ export default function App() {
             onChange={(e) => setSearchText(e.target.value)}
             placeholder="Search for similar phrases"
             className="flex-1 px-3 py-2 border rounded"
+            disabled={isSearching}
           />
           <button
             type="submit"
-            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
+            disabled={isSearching}
           >
-            Search
+            {isSearching ? "Searching..." : "Search"}
           </button>
         </form>
 

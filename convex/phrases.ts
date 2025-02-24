@@ -1,8 +1,15 @@
 import { v } from "convex/values";
-import { action, mutation, query } from "./_generated/server";
+import {
+  action,
+  mutation,
+  query,
+  ActionCtx,
+  internalQuery,
+  internalMutation,
+} from "./_generated/server";
 import { internal } from "./_generated/api";
 import OpenAI from "openai";
-import { Doc } from "./_generated/dataModel";
+import { Doc, Id } from "./_generated/dataModel";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -28,7 +35,7 @@ export const add = action({
   },
 });
 
-export const store = mutation({
+export const store = internalMutation({
   args: {
     text: v.string(),
     embedding: v.array(v.number()),
@@ -77,7 +84,7 @@ export const search = action({
       text: v.string(),
     }),
   ),
-  handler: async (ctx, { text }) => {
+  handler: async (ctx: ActionCtx, { text }) => {
     const response = await openai.embeddings.create({
       model: "text-embedding-3-small",
       input: text,
@@ -86,34 +93,33 @@ export const search = action({
 
     const embedding = response.data[0].embedding;
 
-    const results = await ctx.runQuery(internal.phrases.vectorSearch, {
-      embedding,
+    const results = await ctx.vectorSearch("phrases", "by_embedding", {
+      vector: embedding,
+      limit: 5,
     });
 
-    return results.map((doc) => ({
-      _id: doc._id,
-      text: doc.text,
-    }));
+    // Fetch the actual documents since vectorSearch only returns IDs and scores
+    const docs: any[] = [];
+    for (const { _id } of results) {
+      const doc = await ctx.runQuery(internal.phrases.getPhrase, { id: _id });
+      if (doc) docs.push(doc);
+    }
+    return docs;
   },
 });
 
-export const vectorSearch = query({
-  args: { embedding: v.array(v.number()) },
-  returns: v.array(
-    v.object({
-      _id: v.id("phrases"),
-      text: v.string(),
-    }),
-  ),
-  handler: async (ctx, { embedding }) => {
-    const results = await ctx.db
-      .query("phrases")
-      .withVectorIndex("by_embedding", { vector: embedding })
-      .take(5);
-
-    return results.map((doc) => ({
+export const getPhrase = internalQuery({
+  args: { id: v.id("phrases") },
+  returns: v.object({
+    _id: v.id("phrases"),
+    text: v.string(),
+  }),
+  handler: async (ctx, { id }) => {
+    const doc = await ctx.db.get(id);
+    if (!doc) throw new Error("Phrase not found");
+    return {
       _id: doc._id,
       text: doc.text,
-    }));
+    };
   },
 });
