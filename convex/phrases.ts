@@ -31,6 +31,7 @@ export const add = action({
       text,
       embedding,
     });
+
     return null;
   },
 });
@@ -76,15 +77,22 @@ export const remove = mutation({
   },
 });
 
+type PhraseResult = {
+  _id: Id<"phrases">;
+  text: string;
+  score: number;
+};
+
 export const search = action({
   args: { text: v.string() },
   returns: v.array(
     v.object({
       _id: v.id("phrases"),
       text: v.string(),
+      score: v.number(),
     }),
   ),
-  handler: async (ctx: ActionCtx, { text }) => {
+  handler: async (ctx, { text }): Promise<PhraseResult[]> => {
     const response = await openai.embeddings.create({
       model: "text-embedding-3-small",
       input: text,
@@ -99,10 +107,14 @@ export const search = action({
     });
 
     // Fetch the actual documents since vectorSearch only returns IDs and scores
-    const docs: any[] = [];
-    for (const { _id } of results) {
+    const docs: PhraseResult[] = [];
+    for (const { _id, _score } of results) {
       const doc = await ctx.runQuery(internal.phrases.getPhrase, { id: _id });
-      if (doc) docs.push(doc);
+      if (doc)
+        docs.push({
+          ...doc,
+          score: _score,
+        });
     }
     return docs;
   },
