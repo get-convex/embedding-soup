@@ -1,5 +1,12 @@
 import { v } from "convex/values";
-import { action, mutation, query, internalQuery } from "./_generated/server";
+import {
+  action,
+  mutation,
+  query,
+  internalQuery,
+  internalMutation,
+  internalAction,
+} from "./_generated/server";
 import { api, internal } from "./_generated/api";
 import OpenAI from "openai";
 import { Id } from "./_generated/dataModel";
@@ -8,23 +15,64 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export const add = action({
+export const generateEmbedding = internalAction({
   args: { text: v.string() },
-  returns: v.null(),
+  returns: v.array(v.number()),
   handler: async (ctx, { text }) => {
     const response = await openai.embeddings.create({
       model: "text-embedding-3-small",
       input: text,
       encoding_format: "float",
     });
+    return response.data[0].embedding;
+  },
+});
 
-    const embedding = response.data[0].embedding;
-
-    await ctx.runMutation(api.phrases.store, {
+export const add = mutation({
+  args: { text: v.string() },
+  returns: v.null(),
+  handler: async (ctx, { text }) => {
+    // First store the phrase without embedding
+    const phraseId = await ctx.db.insert("phrases", {
       text,
-      embedding,
+      embedding: [], // Empty array as placeholder
     });
 
+    await ctx.scheduler.runAfter(0, internal.phrases.updateEmbedding, {
+      phraseId,
+      text,
+    });
+
+    return null;
+  },
+});
+
+export const updateEmbedding = internalAction({
+  args: {
+    phraseId: v.id("phrases"),
+    text: v.string(),
+  },
+  returns: v.null(),
+  handler: async (ctx, { phraseId, text }) => {
+    const embedding = await ctx.runAction(internal.phrases.generateEmbedding, {
+      text,
+    });
+    await ctx.runMutation(internal.phrases.saveEmbedding, {
+      phraseId,
+      embedding,
+    });
+    return null;
+  },
+});
+
+export const saveEmbedding = internalMutation({
+  args: {
+    phraseId: v.id("phrases"),
+    embedding: v.array(v.number()),
+  },
+  returns: v.null(),
+  handler: async (ctx, { phraseId, embedding }) => {
+    await ctx.db.patch(phraseId, { embedding });
     return null;
   },
 });

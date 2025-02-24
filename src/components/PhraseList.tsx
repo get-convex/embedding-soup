@@ -8,7 +8,18 @@ interface PhraseListProps {
 
 export function PhraseList({ onError }: PhraseListProps) {
   const phrases = useQuery(api.phrases.list);
-  const removePhrase = useMutation(api.phrases.remove);
+  const removePhrase = useMutation(api.phrases.remove).withOptimisticUpdate(
+    (localStore, args) => {
+      const { id } = args;
+      const existingPhrases = localStore.getQuery(api.phrases.list);
+      if (existingPhrases !== undefined)
+        localStore.setQuery(
+          api.phrases.list,
+          {},
+          existingPhrases.filter((p) => p._id !== id),
+        );
+    },
+  );
 
   const handleRemove = async (id: Id<"phrases">) => {
     try {

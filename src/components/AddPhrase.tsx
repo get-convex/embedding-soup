@@ -1,51 +1,58 @@
-import { FormEvent, useState } from "react";
-import { useAction } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import { useState } from "react";
+import { Id } from "../../convex/_generated/dataModel";
 
 interface AddPhraseProps {
   onError: (error: unknown) => void;
 }
 
 export function AddPhrase({ onError }: AddPhraseProps) {
-  const [inputText, setInputText] = useState("");
-  const [isAdding, setIsAdding] = useState(false);
-  const addPhrase = useAction(api.phrases.add);
+  const [text, setText] = useState("");
+  const addPhrase = useMutation(api.phrases.add).withOptimisticUpdate(
+    (localStore, args) => {
+      const { text } = args;
+      const existingPhrases = localStore.getQuery(api.phrases.list);
+      if (existingPhrases !== undefined) {
+        const optimisticId = crypto.randomUUID() as Id<"phrases">;
+        localStore.setQuery(api.phrases.list, {}, [
+          ...existingPhrases,
+          { _id: optimisticId, text },
+        ]);
+      }
+    },
+  );
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputText.trim()) return;
+    if (!text.trim()) return;
 
     try {
-      setIsAdding(true);
-      await addPhrase({ text: inputText.trim() });
-      setInputText("");
+      await addPhrase({ text });
+      setText("");
     } catch (err) {
       onError(err);
-    } finally {
-      setIsAdding(false);
     }
   };
 
   return (
-    <div className="mb-8">
-      <h2 className="text-xl font-semibold mb-4">Add Phrases</h2>
-      <form onSubmit={handleSubmit} className="flex gap-2">
+    <form onSubmit={handleSubmit} className="mb-8">
+      <div className="flex gap-2">
         <input
           type="text"
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          placeholder="Enter a word or phrase"
-          className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white placeholder-gray-400"
-          disabled={isAdding}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Enter a phrase..."
+          className="flex-1 p-2 bg-gray-800 rounded text-white"
         />
         <button
           type="submit"
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-          disabled={isAdding}
+          disabled={!text.trim()}
+          className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
         >
-          {isAdding ? "Adding..." : "Add"}
+          Add
         </button>
-      </form>
-    </div>
+      </div>
+    </form>
   );
 }
