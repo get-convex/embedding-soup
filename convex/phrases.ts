@@ -136,32 +136,35 @@ export const search = action({
       limit: 5,
     });
 
-    // Fetch the actual documents since vectorSearch only returns IDs and scores
-    const docs: PhraseResult[] = [];
-    for (const { _id, _score } of results) {
-      const doc = await ctx.runQuery(internal.phrases.getPhrase, { id: _id });
-      if (doc)
-        docs.push({
-          ...doc,
-          score: _score,
-        });
-    }
-    return docs;
+    // Get phrases with scores in a single query
+    return await ctx.runQuery(
+      internal.phrases.getPhrasesFromVectorSearchResults,
+      { results },
+    );
   },
 });
 
-export const getPhrase = internalQuery({
-  args: { id: v.id("phrases") },
-  returns: v.object({
-    _id: v.id("phrases"),
-    text: v.string(),
-  }),
-  handler: async (ctx, { id }) => {
-    const doc = await ctx.db.get(id);
-    if (!doc) throw new Error("Phrase not found");
-    return {
-      _id: doc._id,
-      text: doc.text,
-    };
+export const getPhrasesFromVectorSearchResults = internalQuery({
+  args: {
+    results: v.array(
+      v.object({
+        _id: v.id("phrases"),
+        _score: v.number(),
+      }),
+    ),
+  },
+  handler: async (ctx, { results }) => {
+    const docs = await Promise.all(
+      results.map(async ({ _id, _score }) => {
+        const doc = await ctx.db.get(_id);
+        if (!doc) return null;
+        return {
+          _id,
+          score: _score,
+          text: doc.text,
+        };
+      }),
+    );
+    return docs.filter((b) => b != null);
   },
 });
