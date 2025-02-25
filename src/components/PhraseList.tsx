@@ -1,11 +1,12 @@
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 interface PhraseListProps {
   onError: (error: unknown) => void;
   onSearch: (text: string) => Promise<void>;
+  searchText: string;
 }
 
 interface FloatingPhrase {
@@ -18,17 +19,45 @@ interface FloatingPhrase {
   isNew?: boolean;
 }
 
-export function PhraseList({ onError, onSearch }: PhraseListProps) {
+export function PhraseList({ onError, onSearch, searchText }: PhraseListProps) {
   const phrases = useQuery(api.phrases.list);
   const [floatingPhrases, setFloatingPhrases] = useState<FloatingPhrase[]>([]);
   const [newPhraseIds, setNewPhraseIds] = useState<Set<string>>(new Set());
+  const searchTextRef = useRef(searchText);
+  const prevLastPhraseIdRef = useRef("");
+
+  // Update ref when searchText changes
+  useEffect(() => {
+    searchTextRef.current = searchText;
+  }, [searchText]);
+
+  // Initialize the prevLastPhraseIdRef when phrases are first loaded
+  useEffect(() => {
+    if (phrases?.length && prevLastPhraseIdRef.current === "")
+      prevLastPhraseIdRef.current = phrases[phrases.length - 1]._id.toString();
+  }, [phrases]);
 
   // Trigger search when phrases change
   useEffect(() => {
     if (!phrases?.length) return;
+
+    // Get the last phrase
     const lastPhrase = phrases[phrases.length - 1];
-    onSearch(lastPhrase.text);
-  }, [phrases?.length]);
+    if (!lastPhrase.text.trim()) return;
+
+    // Only run search if this is a new phrase, not on initial load
+    const isNewPhrase =
+      lastPhrase._id.toString() !== prevLastPhraseIdRef.current;
+
+    // Store the current last phrase ID
+    prevLastPhraseIdRef.current = lastPhrase._id.toString();
+
+    // Only trigger automatic search for new phrases AND when it's not coming from search text changes
+    if (isNewPhrase && prevLastPhraseIdRef.current !== "") {
+      // Auto-search with the new phrase text without considering searchText
+      onSearch(lastPhrase.text);
+    }
+  }, [phrases?.length, onSearch]);
 
   const removePhrase = useMutation(api.phrases.remove).withOptimisticUpdate(
     (localStore, args) => {

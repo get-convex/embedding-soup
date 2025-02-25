@@ -40,6 +40,12 @@ export default function App() {
     }
   };
 
+  // Don't automatically search when searchText changes
+  const setSearchTextSafe = (text: string) => {
+    setSearchText(text);
+    // No automatic search here - only when user submits the form
+  };
+
   return (
     <div className="h-screen bg-[#E2EEEA] overflow-hidden">
       <div className="h-full container mx-auto px-4 py-8">
@@ -64,7 +70,11 @@ export default function App() {
                 className="w-full h-full object-contain"
               />
               <div className="absolute inset-[15%] rounded-full overflow-hidden">
-                <PhraseList onError={handleError} onSearch={handleSearch} />
+                <PhraseList
+                  onError={handleError}
+                  onSearch={handleSearch}
+                  searchText={searchText}
+                />
               </div>
             </div>
           </div>
@@ -74,7 +84,7 @@ export default function App() {
             <SearchPhrases
               onError={handleError}
               searchText={searchText}
-              setSearchText={setSearchText}
+              setSearchText={setSearchTextSafe}
               isSearching={isSearching}
               searchResults={searchResults}
               onSearch={handleSearch}

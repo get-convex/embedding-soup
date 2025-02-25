@@ -4,10 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "npm-run-all --parallel dev:frontend dev:backend",
+    "dev": "npm-run-all --parallel dev:frontend dev:backend dev:ts",
     "dev:frontend": "vite --open",
     "dev:backend": "convex dev",
-    "dev:ts": "tsc -b -w",
+    "dev:ts": "tsc -b -w --preserveWatchOutput",
     "predev": "convex dev --until-success && convex dashboard",
     "build": "tsc -b && vite build",
     "lint": "tsc && eslint .  --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "convex": "^1.16.0",
+    "lucide-react": "^0.475.0",
     "openai": "^4.85.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

@@ -22,6 +22,8 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
+    
+
 
     /* Import paths */
     "paths": {

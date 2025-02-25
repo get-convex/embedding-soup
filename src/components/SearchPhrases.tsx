@@ -1,4 +1,4 @@
-import { FormEvent } from "react";
+import { FormEvent, useState, useEffect } from "react";
 import { InfoBox } from "./InfoBox";
 import { Search } from "lucide-react";
 import { SearchResult } from "../App";
@@ -19,9 +19,17 @@ export function SearchPhrases({
   searchResults,
   onSearch,
 }: SearchPhrasesProps) {
+  const [localSearchText, setLocalSearchText] = useState(searchText);
+
+  // Update local state when prop changes (needed for external changes)
+  useEffect(() => {
+    setLocalSearchText(searchText);
+  }, [searchText]);
+
   const handleSearch = async (e: FormEvent) => {
     e.preventDefault();
-    await onSearch(searchText);
+    setSearchText(localSearchText); // Update parent state only on submission
+    await onSearch(localSearchText);
   };
 
   return (
@@ -34,8 +42,8 @@ export function SearchPhrases({
       <form onSubmit={handleSearch} className="relative flex items-center">
         <input
           type="text"
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
+          value={localSearchText}
+          onChange={(e) => setLocalSearchText(e.target.value)}
           placeholder="Search for flavors in the soup..."
           className="w-full px-6 py-3 bg-white/80 rounded-full text-gray-800 placeholder-gray-500
                      border border-gray-200 focus:border-rose-600 focus:outline-none
@@ -47,7 +55,7 @@ export function SearchPhrases({
           className="absolute right-2 px-4 py-1.5 bg-gradient-to-r from-rose-600 to-rose-700
                      text-white rounded-full disabled:opacity-50 hover:from-rose-700 hover:to-rose-800
                      transition-all transform hover:scale-105 active:scale-95 shadow-sm"
-          disabled={isSearching}
+          disabled={isSearching || !localSearchText.trim()}
         >
           {isSearching ? "Tasting..." : "Taste"}
         </button>
