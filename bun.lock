@@ -2,7 +2,7 @@
   "lockfileVersion": 1,
   "workspaces": {
     "": {
-      "name": "convex-vector-search-demo",
+      "name": "embedding-soup",
       "dependencies": {
         "convex": "^1.16.0",
         "openai": "^4.85.4",

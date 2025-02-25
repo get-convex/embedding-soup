@@ -1,4 +1,4 @@
-# Convex Vector Search Demo
+# Embedding Soup
 
 This project demonstrates how to use Convex's vector search capabilities in a simple web application. It provides a practical example of semantic search using vector embeddings.
 
