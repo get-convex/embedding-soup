@@ -1,35 +1,78 @@
-import { FormEvent, useState, useEffect } from "react";
+import { FormEvent, useState, useEffect, useRef } from "react";
 import { InfoBox } from "./InfoBox";
 import { Search } from "lucide-react";
-import { SearchResult } from "../App";
+import { useAction, useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
+import { Id } from "../../convex/_generated/dataModel";
+import { toast } from "./ui/toast";
 
-interface SearchPhrasesProps {
-  onError: (error: unknown) => void;
-  searchText: string;
-  setSearchText: (text: string) => void;
-  isSearching: boolean;
-  searchResults: SearchResult[];
-  onSearch: (text: string) => Promise<void>;
-}
+export type SearchResult = {
+  _id: Id<"phrases">;
+  text: string;
+  score: number;
+};
 
-export function SearchPhrases({
-  searchText,
-  setSearchText,
-  isSearching,
-  searchResults,
-  onSearch,
-}: SearchPhrasesProps) {
-  const [localSearchText, setLocalSearchText] = useState(searchText);
+interface SearchPhrasesProps {}
 
-  // Update local state when prop changes (needed for external changes)
+export function SearchPhrases({}: SearchPhrasesProps) {
+  const phrases = useQuery(api.phrases.list);
+  const searchPhrases = useAction(api.phrases.search);
+
+  const [localSearchText, setLocalSearchText] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const prevLastPhraseIdRef = useRef("");
+
+  // Initialize the prevLastPhraseIdRef when phrases are first loaded
   useEffect(() => {
-    setLocalSearchText(searchText);
-  }, [searchText]);
+    if (phrases?.length && prevLastPhraseIdRef.current === "")
+      prevLastPhraseIdRef.current = phrases[phrases.length - 1]._id.toString();
+  }, [phrases]);
 
-  const handleSearch = async (e: FormEvent) => {
+  // Trigger search when phrases change
+  useEffect(() => {
+    if (!phrases?.length) return;
+
+    // Get the last phrase
+    const lastPhrase = phrases[phrases.length - 1];
+    if (!lastPhrase.text.trim()) return;
+
+    // Only run search if this is a new phrase, not on initial load
+    const isNewPhrase =
+      lastPhrase._id.toString() !== prevLastPhraseIdRef.current;
+
+    // Store the current last phrase ID
+    prevLastPhraseIdRef.current = lastPhrase._id.toString();
+
+    // Only trigger automatic search for new phrases
+    if (isNewPhrase && prevLastPhraseIdRef.current !== "")
+      handleSearch(lastPhrase.text);
+  }, [phrases?.length]);
+
+  const handleSearch = async (text: string) => {
+    if (!text.trim()) return;
+
+    setLocalSearchText(text);
+
+    try {
+      setIsSearching(true);
+      const results = await searchPhrases({ text: text.trim() });
+      setSearchResults(results);
+    } catch (err) {
+      toast({
+        title: "Error searching phrases",
+        description: err instanceof Error ? err.message : "An error occurred",
+        variant: "destructive",
+      });
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setSearchText(localSearchText); // Update parent state only on submission
-    await onSearch(localSearchText);
+    await handleSearch(localSearchText);
   };
 
   return (
@@ -39,7 +82,7 @@ export function SearchPhrases({
         similarity to find phrases that are semantically related, even if they
         use different words.
       </InfoBox>
-      <form onSubmit={handleSearch} className="relative flex items-center">
+      <form onSubmit={handleSubmit} className="relative flex items-center">
         <input
           type="text"
           value={localSearchText}

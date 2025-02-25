@@ -4,12 +4,11 @@ import { useState } from "react";
 import { Id } from "../../convex/_generated/dataModel";
 import { InfoBox } from "./InfoBox";
 import { Soup } from "lucide-react";
+import { toast } from "./ui/toast";
 
-interface AddPhraseProps {
-  onError: (error: unknown) => void;
-}
+interface AddPhraseProps {}
 
-export function AddPhrase({ onError }: AddPhraseProps) {
+export function AddPhrase({}: AddPhraseProps) {
   const [text, setText] = useState("");
   const addPhrase = useMutation(api.phrases.add).withOptimisticUpdate(
     (localStore, args) => {
@@ -33,7 +32,11 @@ export function AddPhrase({ onError }: AddPhraseProps) {
       await addPhrase({ text });
       setText("");
     } catch (err) {
-      onError(err);
+      toast({
+        title: "Error adding phrase",
+        description: err instanceof Error ? err.message : "An error occurred",
+        variant: "destructive",
+      });
     }
   };
 
