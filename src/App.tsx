@@ -11,7 +11,7 @@ export default function App() {
     <ToastProvider>
       <div className="h-screen bg-[#E2EEEA] overflow-hidden">
         <div className="h-full container mx-auto px-4 py-8">
-          <h1 className="text-5xl font-bold mb-12 text-center bg-clip-text text-transparent bg-gradient-to-r from-rose-700 to-rose-900 relative z-20">
+          <h1 className="text-5xl font-bold mb-16 text-center bg-clip-text text-transparent bg-gradient-to-r from-rose-700 to-rose-900 relative z-30 leading-relaxed py-2">
             Embedding Soup
           </h1>
 

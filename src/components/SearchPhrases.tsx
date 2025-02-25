@@ -1,4 +1,4 @@
-import { FormEvent, useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { InfoBox } from "./InfoBox";
 import { Search } from "lucide-react";
 import { useAction, useQuery } from "convex/react";
@@ -12,9 +12,7 @@ export type SearchResult = {
   score: number;
 };
 
-interface SearchPhrasesProps {}
-
-export function SearchPhrases({}: SearchPhrasesProps) {
+export function SearchPhrases({}: {}) {
   const phrases = useQuery(api.phrases.list);
   const searchPhrases = useAction(api.phrases.search);
 
@@ -25,37 +23,36 @@ export function SearchPhrases({}: SearchPhrasesProps) {
 
   // Initialize the prevLastPhraseIdRef when phrases are first loaded
   useEffect(() => {
-    if (phrases?.length && prevLastPhraseIdRef.current === "")
-      prevLastPhraseIdRef.current = phrases[phrases.length - 1]._id.toString();
+    if (!phrases?.length) return;
+    if (prevLastPhraseIdRef.current !== "") return;
+
+    prevLastPhraseIdRef.current = phrases[phrases.length - 1]._id.toString();
   }, [phrases]);
 
   // Trigger search when phrases change
   useEffect(() => {
     if (!phrases?.length) return;
 
-    // Get the last phrase
     const lastPhrase = phrases[phrases.length - 1];
     if (!lastPhrase.text.trim()) return;
 
-    // Only run search if this is a new phrase, not on initial load
     const isNewPhrase =
       lastPhrase._id.toString() !== prevLastPhraseIdRef.current;
-
-    // Store the current last phrase ID
     prevLastPhraseIdRef.current = lastPhrase._id.toString();
 
-    // Only trigger automatic search for new phrases
-    if (isNewPhrase && prevLastPhraseIdRef.current !== "")
-      handleSearch(lastPhrase.text);
+    if (!isNewPhrase) return;
+    if (prevLastPhraseIdRef.current === "") return;
+
+    handleSearch(lastPhrase.text);
   }, [phrases?.length]);
 
   const handleSearch = async (text: string) => {
     if (!text.trim()) return;
 
     setLocalSearchText(text);
+    setIsSearching(true);
 
     try {
-      setIsSearching(true);
       const results = await searchPhrases({ text: text.trim() });
       setSearchResults(results);
     } catch (err) {
@@ -70,11 +67,6 @@ export function SearchPhrases({}: SearchPhrasesProps) {
     }
   };
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    await handleSearch(localSearchText);
-  };
-
   return (
     <div className="w-full">
       <InfoBox icon={<Search className="w-5 h-5" />}>
@@ -82,7 +74,13 @@ export function SearchPhrases({}: SearchPhrasesProps) {
         similarity to find phrases that are semantically related, even if they
         use different words.
       </InfoBox>
-      <form onSubmit={handleSubmit} className="relative flex items-center">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSearch(localSearchText);
+        }}
+        className="relative flex items-center"
+      >
         <input
           type="text"
           value={localSearchText}
