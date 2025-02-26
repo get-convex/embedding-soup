@@ -19,32 +19,7 @@ export function SearchPhrases({}: {}) {
   const [localSearchText, setLocalSearchText] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-  const prevLastPhraseIdRef = useRef("");
-
-  // Initialize the prevLastPhraseIdRef when phrases are first loaded
-  useEffect(() => {
-    if (!phrases?.length) return;
-    if (prevLastPhraseIdRef.current !== "") return;
-
-    prevLastPhraseIdRef.current = phrases[phrases.length - 1]._id.toString();
-  }, [phrases]);
-
-  // Trigger search when phrases change
-  useEffect(() => {
-    if (!phrases?.length) return;
-
-    const lastPhrase = phrases[phrases.length - 1];
-    if (!lastPhrase.text.trim()) return;
-
-    const isNewPhrase =
-      lastPhrase._id.toString() !== prevLastPhraseIdRef.current;
-    prevLastPhraseIdRef.current = lastPhrase._id.toString();
-
-    if (!isNewPhrase) return;
-    if (prevLastPhraseIdRef.current === "") return;
-
-    handleSearch(lastPhrase.text);
-  }, [phrases?.length]);
+  const [hasAlteredSearchText, setHasAlteredSearchText] = useState(false);
 
   const handleSearch = async (text: string) => {
     if (!text.trim()) return;
@@ -67,6 +42,15 @@ export function SearchPhrases({}: {}) {
     }
   };
 
+  // Auto-research when phrases change
+  useEffect(() => {
+    if (!phrases) return;
+    if (phrases.length == 0) return;
+    if (!hasAlteredSearchText) return;
+    if (!localSearchText) return;
+    handleSearch(localSearchText);
+  }, [phrases]);
+
   return (
     <div className="w-full">
       <InfoBox icon={<Search className="w-5 h-5" />}>
@@ -84,7 +68,10 @@ export function SearchPhrases({}: {}) {
         <input
           type="text"
           value={localSearchText}
-          onChange={(e) => setLocalSearchText(e.target.value)}
+          onChange={(e) => {
+            setLocalSearchText(e.target.value);
+            setHasAlteredSearchText(true);
+          }}
           placeholder="Search for flavors in the soup..."
           className="w-full px-6 py-3 bg-white/80 rounded-full text-gray-800 placeholder-gray-500
                      border border-gray-200 focus:border-rose-600 focus:outline-none
