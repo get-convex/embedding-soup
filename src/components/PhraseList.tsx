@@ -100,11 +100,6 @@ export function PhraseList({}: PhraseListProps) {
       </div>
     );
 
-  if (phrases.length === 0)
-    return (
-      <div className="text-center text-gray-600 mt-4">The soup is empty!</div>
-    );
-
   return (
     <div className="relative w-full h-full">
       <style>

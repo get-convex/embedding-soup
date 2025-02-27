@@ -5,12 +5,8 @@ export default defineSchema({
   phrases: defineTable({
     text: v.string(),
     embedding: v.array(v.number()),
-  })
-    .vectorIndex("by_embedding", {
-      vectorField: "embedding",
-      dimensions: 1536, // OpenAI's text-embedding-3-small model dimensions
-    })
-    .searchIndex("search_text", {
-      searchField: "text",
-    }),
+  }).vectorIndex("by_embedding", {
+    vectorField: "embedding",
+    dimensions: 1536, // OpenAI's text-embedding-3-small model dimensions
+  }),
 });
