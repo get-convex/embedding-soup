@@ -1,6 +1,10 @@
+![Embedding Soup](docs/header.png)
+
 # Embedding Soup
 
 This project demonstrates how to use Convex's vector search capabilities in a simple web application. It provides a practical example of semantic search using vector embeddings.
+
+📹 **Watch the full project walkthrough:** [YouTube Tutorial](https://www.youtube.com/watch?v=WA_acpyoCDU)
 
 ## Features
 
